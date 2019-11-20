@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 Intel Corporation
+** Copyright (C) 2019 Intel Corporation
 **
 ** Permission is hereby granted, free of charge, to any person obtaining a copy
 ** of this software and associated documentation files (the "Software"), to deal
@@ -228,6 +228,7 @@ CBOR_INLINE_API CborError cbor_encode_text_stringz(CborEncoder *encoder, const c
 { return cbor_encode_text_string(encoder, string, strlen(string)); }
 CBOR_API CborError cbor_encode_byte_string(CborEncoder *encoder, const uint8_t *string, size_t length);
 CBOR_API CborError cbor_encode_floating_point(CborEncoder *encoder, CborType fpType, const void *value);
+CBOR_API CborError cbor_encode_raw(CborEncoder *encoder, const uint8_t *raw, size_t length);
 
 CBOR_INLINE_API CborError cbor_encode_boolean(CborEncoder *encoder, bool value)
 { return cbor_encode_simple_value(encoder, (int)value - 1 + (CborBooleanType & 0x1f)); }
@@ -273,7 +274,8 @@ enum CborParserIteratorFlags
     CborIteratorFlag_NegativeInteger        = 0x02,
     CborIteratorFlag_IteratingStringChunks  = 0x02,
     CborIteratorFlag_UnknownLength          = 0x04,
-    CborIteratorFlag_ContainerIsMap         = 0x20
+    CborIteratorFlag_ContainerIsMap         = 0x20,
+    CborIteratorFlag_NextIsMapKey           = 0x40
 };
 
 struct CborParser

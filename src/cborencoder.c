@@ -65,7 +65,7 @@
  * \code
  *      uint8_t buf[16];
  *      CborEncoder encoder;
- *      cbor_encoder_init(&encoder, &buf, sizeof(buf), 0);
+ *      cbor_encoder_init(&encoder, buf, sizeof(buf), 0);
  *      cbor_encode_int(&encoder, some_value);
  * \endcode
  *
@@ -117,16 +117,16 @@
  *      CborEncoder encoder, mapEncoder;
  *      cbor_encoder_init(&encoder, buf, sizeof(buf), 0);
  *      err = cbor_encoder_create_map(&encoder, &mapEncoder, 1);
- *      if (!err)
+ *      if (err)
  *          return err;
  *      err = cbor_encode_text_stringz(&mapEncoder, "foo");
- *      if (!err)
+ *      if (err)
  *          return err;
  *      err = cbor_encode_boolean(&mapEncoder, some_value);
- *      if (!err)
+ *      if (err)
  *          return err;
  *      err = cbor_encoder_close_container_checked(&encoder, &mapEncoder);
- *      if (!err)
+ *      if (err)
  *          return err;
  *
  *      size_t len = cbor_encoder_get_buffer_size(&encoder, buf);
@@ -157,7 +157,7 @@
  *
  *         cbor_encoder_init(&encoder, buf, size, 0);
  *         err = cbor_encoder_create_array(&encoder, &arrayEncoder, n);
- *         cbor_assert(err);         // can't fail, the buffer is always big enough
+ *         cbor_assert(!err);         // can't fail, the buffer is always big enough
  *
  *         for (i = 0; i < n; ++i) {
  *             err = cbor_encode_text_stringz(&arrayEncoder, strings[i]);
@@ -166,7 +166,7 @@
  *         }
  *
  *         err = cbor_encoder_close_container_checked(&encoder, &arrayEncoder);
- *         cbor_assert(err);         // shouldn't fail!
+ *         cbor_assert(!err);         // shouldn't fail!
  *
  *         more_bytes = cbor_encoder_get_extra_bytes_needed(encoder);
  *         if (more_size) {
@@ -442,6 +442,20 @@ static CborError encode_string(CborEncoder *encoder, size_t length, uint8_t shif
 CborError cbor_encode_byte_string(CborEncoder *encoder, const uint8_t *string, size_t length)
 {
     return encode_string(encoder, length, ByteStringType << MajorTypeShift, string);
+}
+
+/**
+ * Puts the data of length \a length in \a raw into to the encoding buffer of \a 
+ * encoder. This function can be used if you have stored CBOR encoded data and
+ * want to push it to your current encoding buffer. Be aware, you are 
+ * responsible for the data in \a raw is valid and that the validity of the
+ * resulting stream after this operation remains valid.
+ *
+ * \sa CborError cbor_encode_byte_string
+ */
+CborError cbor_encode_raw(CborEncoder *encoder, const uint8_t *raw, size_t length)
+{
+    return append_to_buffer(encoder, raw, length);
 }
 
 /**
